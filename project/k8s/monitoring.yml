@@ -1,0 +1,70 @@
+# Custom Metrics API for advanced scaling
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: broker-service-custom-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: broker-service
+  minReplicas: 2
+  maxReplicas: 15
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Object
+      object:
+        metric:
+          name: requests-per-second
+        describedObject:
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          name: microservices-ingress
+        target:
+          type: AverageValue
+          averageValue: 100
+
+---
+# Pod Disruption Budget for high availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: broker-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: broker-service
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: authentication-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: authentication-service
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: logger-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: logger-service

@@ -1,0 +1,7 @@
+# compiled Go binaries
+authentication-service/authApp
+broker-service/brokerApp
+# local database data
+db-data/
+project/db-data/
+.DS_Store
